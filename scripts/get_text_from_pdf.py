@@ -13,8 +13,9 @@ def extract_text_from_pdf(pdf_file_path):
         return str(e)
 
 
-# Example usage:
-pdf_file_path = '../Knowledge Graph/'
-pdf_file_name = '14-Emmanuel-Petit-Christophe-Leveque.pdf'
-extracted_text = extract_text_from_pdf(pdf_file_path+pdf_file_name)
-print(extracted_text)
+if __name__ == "__main__":
+    print("Hello World!")
+    pdf_file_path = '../Knowledge Graph/'
+    pdf_file_name = '14-Emmanuel-Petit-Christophe-Leveque.pdf'
+    extracted_text = extract_text_from_pdf(pdf_file_path + pdf_file_name)
+    print(extracted_text)
