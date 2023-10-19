@@ -41,14 +41,14 @@ def create_txt_from_image(image_path):
             file.write(paragraph_text)
             print(paragraph_text)
 
-    # Windows and Linux only
+    '''# Windows only, might need to be changed for other OS
 
     # Open the image file
-    # image = Image.open(image_path)
-    # image.show()
+    image = Image.open(image_path)
+    image.show()
 
     # Open the text file
-    # os.startfile(text_file_path)
+    os.startfile(text_file_path)'''
 
 
 def group_text_regions(result, threshold_distance=20):
