@@ -1,11 +1,14 @@
 import fitz
 
 
-def extract_text_from_pdf(pdf_file_path):
+def extract_text_from_pdf(pdf_file_path, skip_pages=0, end_pages=0):
     try:
         doc = fitz.open(pdf_file_path)
         text = ""
-        for page_num in range(doc.page_count):
+        total_pages = doc.page_count
+        for page_num in range(skip_pages, total_pages - end_pages):
+            if page_num < skip_pages:
+                continue
             page = doc.load_page(page_num)
             text += page.get_text()
         return text
