@@ -1,0 +1,221 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2757
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 .SFNS-Bold;\f1\fnil\fcharset0 .SFNS-Regular;\f2\fnil\fcharset0 .SFNS-RegularItalic_opszE0000_YAXS_wght;
+\f3\fnil\fcharset0 .SFNS-Regular_wdth_opszE0000_GRAD_wght;\f4\fnil\fcharset0 .SFNS-Regular_wdth_opsz110000_GRAD_wght2BC0000;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue0;\red0\green0\blue0;
+\red51\green109\blue126;\red255\green255\blue255;\red0\green0\blue0;\red12\green95\blue24;\red11\green29\blue107;
+\red83\green83\blue83;\red29\green111\blue63;\red51\green92\blue143;\red95\green142\blue198;}
+{\*\expandedcolortbl;;\cssrgb\c0\c1\c1;\cssrgb\c0\c1\c1;\cssrgb\c0\c1\c1;
+\cssrgb\c25203\c50326\c56569;\cssrgb\c100000\c100000\c100000\c0;\cssrgb\c0\c0\c0;\cssrgb\c0\c43828\c12416;\cssrgb\c4240\c17609\c49436;
+\cssrgb\c40044\c40044\c39994;\cssrgb\c12504\c50166\c31303;\cssrgb\c25262\c44116\c62908;\cssrgb\c44107\c62960\c81729;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\b\fs26 \cf2 \ul \ulc2 Comment est construit le graphe de connaissance ?
+\f1\b0 \cf3 \ulnone \
+\
+Le graphe de connaissances est construit \'e0 partir de textes en extrayant des entit\'e9s et des relations entre ces entit\'e9s. \
+\
+Les entit\'e9s deviennent les n\'9cuds du graphe, et les relations entre entit\'e9s deviennent les ar\'eates du graphe. \
+\
+
+\f0\b \cf2 \ul \ulc2 Qu\'92est ce que REBEL est comment est-il construit?
+\f1\b0 \cf3 \ulnone \
+\
+Le mod\'e8le REBEL est utilis\'e9 pour extraire simultan\'e9ment les entit\'e9s et les relations de mani\'e8re \cf2 automatique \'e0 partir de textes.\
+\
+\cf3 REBEL est un mod\'e8le d'apprentissage automatique entra\'een\'e9 pour traduire une phrase contenant des entit\'e9s et des relations implicites en une s\'e9rie de triplets explicites d\'e9crivant ces relations. Le mod\'e8le a \'e9t\'e9 entra\'een\'e9 sur plus de 200 types de relations diff\'e9rents. \
+\
+Pipeline d'extraction de graphe de connaissances en utilisant le mod\'e8le REBEL: \
+Chargement du mod\'e8le\
+Extraction d'un graphe de connaissances \'e0 partir d'un court texte, puis d'un long texte,\
+Filtrage et normalisation des entit\'e9s \'e0 l'aide de Wikipedia\
+Extraction d'un graphe \'e0 partir d'un article web unique ou de plusieurs articles.\
+\cf2 \
+
+\f0\b \cf4 \ul \ulc4 Comment a \'e9t\'e9 entrain\'e9 REBEL ?
+\f1\b0 \cf2 \ulnone \
+\
+\cf3 Le mod\'e8le REBEL a \'e9t\'e9 entra\'een\'e9 par BabelScape en affinant le mod\'e8le BART pour la traduction d'une phrase d'entr\'e9e contenant des entit\'e9s et des relations implicites en un ensemble de triplets faisant explicitement r\'e9f\'e9rence \'e0 ces relations. \
+Les auteurs ont cr\'e9\'e9 un jeu de donn\'e9es personnalis\'e9 pour l'entra\'eenement de REBEL en utilisant des entit\'e9s et relations trouv\'e9es dans les r\'e9sum\'e9s Wikipedia et Wikidata, et en les filtrant \'e0 l'aide d'un mod\'e8le RoBERTa d'inf\'e9rence naturelle.\
+\cf2 \
+\cf3 Les mod\'e8les de type Transformer comme REBEL ont des exigences m\'e9moire qui croissent de mani\'e8re quadratique avec la taille des entr\'e9es. Le mod\'e8le REBEL fonctionne bien sur des entr\'e9es d'environ 512 tokens, soit environ 380 mots anglais. (peut le faire avec + mais moins bien)\
+\
+Pour traiter des documents plus longs, le texte d'entr\'e9e est divis\'e9 en plusieurs portions chevauchantes de taille fixe, telles que des s\'e9quences de 128 tokens. Chaque portion est trait\'e9e s\'e9par\'e9ment par REBEL pour en extraire les relations. \
+\
+Les relations extraites sont ensuite regroup\'e9es dans une base de connaissances unique, en y ajoutant des m\'e9tadonn\'e9es indiquant les limites de la portion d'o\'f9 elles ont \'e9t\'e9 extraites. Cela permet de savoir quelle portion du texte d'origine contient chaque relation.\
+\
+
+\f0\b \cf2 \ul \ulc2 Pour extraire des relations d\'92un texte \'ab\'a0long\'a0\'bb:\
+
+\f1\b0\fs20 \cf3 \ulnone \
+\pard\pardeftab720\partightenfactor0
+
+\f2\i \cf5 \cb6 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec5 # extract relations for each span and put them together in a knowledge base
+\f3\i0 \cf0 \strokec7 \
+
+\f4\b \cf8 \strokec8 def
+\f3\b0 \cf0 \strokec7  \cf9 \strokec9 from_text_to_kb\cf0 \strokec7 (text, span_length\cf10 \strokec10 =\cf11 \strokec11 128\cf0 \strokec7 , verbose\cf10 \strokec10 =
+\f4\b \cf8 \strokec8 False
+\f3\b0 \cf0 \strokec7 ):\
+    
+\f2\i \cf5 \strokec5 # tokenize whole text
+\f3\i0 \cf0 \strokec7 \
+    inputs \cf10 \strokec10 =\cf0 \strokec7  tokenizer([text], return_tensors\cf10 \strokec10 =\cf12 \strokec12 "pt"\cf0 \strokec7 )\
+\
+    
+\f2\i \cf5 \strokec5 # compute span boundaries
+\f3\i0 \cf0 \strokec7 \
+    num_tokens \cf10 \strokec10 =\cf0 \strokec7  \cf8 \strokec8 len\cf0 \strokec7 (inputs[\cf12 \strokec12 "input_ids"\cf0 \strokec7 ][\cf11 \strokec11 0\cf0 \strokec7 ])\
+    
+\f4\b \cf8 \strokec8 if
+\f3\b0 \cf0 \strokec7  verbose:\
+        \cf8 \strokec8 print\cf0 \strokec7 (\cf12 \strokec12 f"Input has 
+\f2\i \cf13 \strokec13 \{
+\f3\i0 \cf0 \strokec7 num_tokens
+\f2\i \cf13 \strokec13 \}
+\f3\i0 \cf12 \strokec12  tokens"\cf0 \strokec7 )\
+    num_spans \cf10 \strokec10 =\cf0 \strokec7  math\cf10 \strokec10 .\cf0 \strokec7 ceil(num_tokens \cf10 \strokec10 /\cf0 \strokec7  span_length)\
+    
+\f4\b \cf8 \strokec8 if
+\f3\b0 \cf0 \strokec7  verbose:\
+        \cf8 \strokec8 print\cf0 \strokec7 (\cf12 \strokec12 f"Input has 
+\f2\i \cf13 \strokec13 \{
+\f3\i0 \cf0 \strokec7 num_spans
+\f2\i \cf13 \strokec13 \}
+\f3\i0 \cf12 \strokec12  spans"\cf0 \strokec7 )\
+    overlap \cf10 \strokec10 =\cf0 \strokec7  math\cf10 \strokec10 .\cf0 \strokec7 ceil((num_spans \cf10 \strokec10 *\cf0 \strokec7  span_length \cf10 \strokec10 -\cf0 \strokec7  num_tokens) \cf10 \strokec10 /\cf0 \strokec7  \
+                        \cf8 \strokec8 max\cf0 \strokec7 (num_spans \cf10 \strokec10 -\cf0 \strokec7  \cf11 \strokec11 1\cf0 \strokec7 , \cf11 \strokec11 1\cf0 \strokec7 ))\
+    spans_boundaries \cf10 \strokec10 =\cf0 \strokec7  []\
+    start \cf10 \strokec10 =\cf0 \strokec7  \cf11 \strokec11 0\cf0 \strokec7 \
+    
+\f4\b \cf8 \strokec8 for
+\f3\b0 \cf0 \strokec7  i 
+\f4\b \cf8 \strokec8 in
+\f3\b0 \cf0 \strokec7  \cf8 \strokec8 range\cf0 \strokec7 (num_spans):\
+        spans_boundaries\cf10 \strokec10 .\cf0 \strokec7 append([start \cf10 \strokec10 +\cf0 \strokec7  span_length \cf10 \strokec10 *\cf0 \strokec7  i,\
+                                 start \cf10 \strokec10 +\cf0 \strokec7  span_length \cf10 \strokec10 *\cf0 \strokec7  (i \cf10 \strokec10 +\cf0 \strokec7  \cf11 \strokec11 1\cf0 \strokec7 )])\
+        start \cf10 \strokec10 -=\cf0 \strokec7  overlap\
+    
+\f4\b \cf8 \strokec8 if
+\f3\b0 \cf0 \strokec7  verbose:\
+        \cf8 \strokec8 print\cf0 \strokec7 (\cf12 \strokec12 f"Span boundaries are 
+\f2\i \cf13 \strokec13 \{
+\f3\i0 \cf0 \strokec7 spans_boundaries
+\f2\i \cf13 \strokec13 \}
+\f3\i0 \cf12 \strokec12 "\cf0 \strokec7 )\
+\
+    
+\f2\i \cf5 \strokec5 # transform input with spans
+\f3\i0 \cf0 \strokec7 \
+    tensor_ids \cf10 \strokec10 =\cf0 \strokec7  [inputs[\cf12 \strokec12 "input_ids"\cf0 \strokec7 ][\cf11 \strokec11 0\cf0 \strokec7 ][boundary[\cf11 \strokec11 0\cf0 \strokec7 ]:boundary[\cf11 \strokec11 1\cf0 \strokec7 ]]\
+                  
+\f4\b \cf8 \strokec8 for
+\f3\b0 \cf0 \strokec7  boundary 
+\f4\b \cf8 \strokec8 in
+\f3\b0 \cf0 \strokec7  spans_boundaries]\
+    tensor_masks \cf10 \strokec10 =\cf0 \strokec7  [inputs[\cf12 \strokec12 "attention_mask"\cf0 \strokec7 ][\cf11 \strokec11 0\cf0 \strokec7 ][boundary[\cf11 \strokec11 0\cf0 \strokec7 ]:boundary[\cf11 \strokec11 1\cf0 \strokec7 ]]\
+                    
+\f4\b \cf8 \strokec8 for
+\f3\b0 \cf0 \strokec7  boundary 
+\f4\b \cf8 \strokec8 in
+\f3\b0 \cf0 \strokec7  spans_boundaries]\
+    inputs \cf10 \strokec10 =\cf0 \strokec7  \{\
+        \cf12 \strokec12 "input_ids"\cf0 \strokec7 : torch\cf10 \strokec10 .\cf0 \strokec7 stack(tensor_ids),\
+        \cf12 \strokec12 "attention_mask"\cf0 \strokec7 : torch\cf10 \strokec10 .\cf0 \strokec7 stack(tensor_masks)\
+    \}\
+\
+    
+\f2\i \cf5 \strokec5 # generate relations
+\f3\i0 \cf0 \strokec7 \
+    num_return_sequences \cf10 \strokec10 =\cf0 \strokec7  \cf11 \strokec11 3\cf0 \strokec7 \
+    gen_kwargs \cf10 \strokec10 =\cf0 \strokec7  \{\
+        \cf12 \strokec12 "max_length"\cf0 \strokec7 : \cf11 \strokec11 256\cf0 \strokec7 ,\
+        \cf12 \strokec12 "length_penalty"\cf0 \strokec7 : \cf11 \strokec11 0\cf0 \strokec7 ,\
+        \cf12 \strokec12 "num_beams"\cf0 \strokec7 : \cf11 \strokec11 3\cf0 \strokec7 ,\
+        \cf12 \strokec12 "num_return_sequences"\cf0 \strokec7 : num_return_sequences\
+    \}\
+    generated_tokens \cf10 \strokec10 =\cf0 \strokec7  model\cf10 \strokec10 .\cf0 \strokec7 generate(\
+        \cf10 \strokec10 **\cf0 \strokec7 inputs,\
+        \cf10 \strokec10 **\cf0 \strokec7 gen_kwargs,\
+    )\
+\
+    
+\f2\i \cf5 \strokec5 # decode relations
+\f3\i0 \cf0 \strokec7 \
+    decoded_preds \cf10 \strokec10 =\cf0 \strokec7  tokenizer\cf10 \strokec10 .\cf0 \strokec7 batch_decode(generated_tokens,\
+                                           skip_special_tokens\cf10 \strokec10 =
+\f4\b \cf8 \strokec8 False
+\f3\b0 \cf0 \strokec7 )\
+\
+    
+\f2\i \cf5 \strokec5 # create kb
+\f3\i0 \cf0 \strokec7 \
+    kb \cf10 \strokec10 =\cf0 \strokec7  KB()\
+    i \cf10 \strokec10 =\cf0 \strokec7  \cf11 \strokec11 0\cf0 \strokec7 \
+    
+\f4\b \cf8 \strokec8 for
+\f3\b0 \cf0 \strokec7  sentence_pred 
+\f4\b \cf8 \strokec8 in
+\f3\b0 \cf0 \strokec7  decoded_preds:\
+        current_span_index \cf10 \strokec10 =\cf0 \strokec7  i \cf10 \strokec10 //\cf0 \strokec7  num_return_sequences\
+        relations \cf10 \strokec10 =\cf0 \strokec7  extract_relations_from_model_output(sentence_pred)\
+        
+\f4\b \cf8 \strokec8 for
+\f3\b0 \cf0 \strokec7  relation 
+\f4\b \cf8 \strokec8 in
+\f3\b0 \cf0 \strokec7  relations:\
+            relation[\cf12 \strokec12 "meta"\cf0 \strokec7 ] \cf10 \strokec10 =\cf0 \strokec7  \{\
+                \cf12 \strokec12 "spans"\cf0 \strokec7 : [spans_boundaries[current_span_index]]\
+            \}\
+            kb\cf10 \strokec10 .\cf0 \strokec7 add_relation(relation)\
+        i \cf10 \strokec10 +=\cf0 \strokec7  \cf11 \strokec11 1\cf0 \strokec7 \
+\
+    
+\f4\b \cf8 \strokec8 return
+\f3\b0 \cf0 \strokec7  kb\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f1\fs26 \cf3 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+La fonction "from_text_to_kb" impl\'e9mente cette logique de d\'e9coupage en portions et de regroupement des relations extraites dans une base de connaissances unique.\
+\cf2 \
+\cf3 Tokenise le texte entier.\
+. Calcule les limites des portions \'e0 l'aide de la longueur de portion donn\'e9e, en g\'e9rant le recouvrement entre portions. \
+. D\'e9coupe le tensor d'entr\'e9e en sous-tensors correspondant aux portions.\
+. G\'e9n\'e8re les relations \'e0 partir de chaque portion de mani\'e8re ind\'e9pendante en utilisant REBEL.\
+. D\'e9code les pr\'e9dictions de REBEL pour chaque portion.\
+. Cr\'e9e un objet KB vide.\
+. Pour chaque pr\'e9diction de portion:\
+	- Extrait les relations \
+	- Ajoute un champ "meta" \'e0 chaque relation contenant les limites de la portion\
+	- Ajoute la relation \'e0 l'objet KB\
+. Renvoie l'objet KB final contenant toutes les relations, assorties de leurs m\'e9tadonn\'e9es de portion.\
+\
+Cela permet d'extraire les relations d'un texte long en le d\'e9coupant, puis de rassembler toutes les relations dans une seule base de connaissances coh\'e9rente.\
+\
+
+\f0\b \cf2 \ul \ulc2 Pour extraire une knowledge base de plusieurs articles:\
+
+\f1\b0 \cf3 \ulnone \
+On applique la fonction "from_text_to_kb" \'e0 chaque article individuellement pour en extraire les relations. \
+\
+Il faut ensuite rassembler toutes les relations issues de chaque article dans une seule base de connaissances globale. Comme lors du traitement de textes longs, il est n\'e9cessaire d'ajouter des m\'e9tadonn\'e9es aux relations pour savoir dans quel article elles ont \'e9t\'e9 extraites.\
+\
+Cela permet in fine d'obtenir une base de connaissances unique agr\'e9geant les informations issues de plusieurs sources textuelles diff\'e9rentes sur un m\'eame sujet.\
+\
+
+\f0\b \cf2 \ul \ulc2 Comment est visualis\'e9e la knowledge base ?\
+\cf3 \ulc3 \
+
+\f1\b0 \cf3 \ulnone Visualis\'e9es \'e0 l'aide de la biblioth\'e8que Python Pyvis.\
+Pyvis permet de repr\'e9senter des graphes et r\'e9seaux sous forme interactive dans le navigateur. \
+\
+Chaque relation de la base de connaissances est repr\'e9sent\'e9e par un arc entre deux n\'9cuds. Les n\'9cuds correspondent aux entit\'e9s et l'arc \'e0 la relation entre ces entit\'e9s.\
+\
+Il est possible de :\
+- Repr\'e9senter l'ensemble des relations de la base de connaissances sous forme de graphe.\
+- Permettre la navigation dans le graphe en cliquant sur les n\'9cuds et arcs. \
+- Mettre en \'e9vidence certaines parties du graphe.\
+- Afficher des informations compl\'e9mentaires sur les entit\'e9s et relations au survol.\
+\
+Cela permet de visualiser et parcourir de mani\'e8re intuitive le contenu de la base de connaissances construite, ainsi que les liens entre ses diff\'e9rentes entit\'e9s.}
