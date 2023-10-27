@@ -10,7 +10,7 @@ def enable_gpu(model, device):
 
 def extract_triplets(text):
     triplets = []
-    relation, subject, relation, object_ = '', '', '', ''
+    relation, subject, object_ = '', '', ''
     text = text.strip()
     current = 'x'
     for token in text.replace("<s>", "").replace("<pad>", "").replace("</s>", "").split():
